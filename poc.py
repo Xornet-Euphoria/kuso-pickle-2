@@ -38,7 +38,9 @@ crafter.call_pickle_bytecode("ksa")
 
 import pickle
 # res = crafter.loads()
-res = pickle.loads(crafter.get_payload(check_stop=True))
+payload = crafter.get_payload(check_stop=True)
+print(len(payload))
+res = pickle.loads(payload)
 print(res)
 
 
