@@ -1,5 +1,3 @@
-# todo: ハッシュ値の難読化
-
 import hashlib
 import obfuscator, vm_info
 
@@ -138,14 +136,17 @@ crafter.memoize()  # 7: _extension_cache
 
 # init vm context
 
-import api_hashing, get_input, epilogue, ksa
+import api_hashing, get_input, epilogue, recursive_matrix_mul, poc3, check_input
 
 # function table
 bytecodes = {
     "api_hashing": api_hashing.api_hashing_bytecode,
     "get_input": get_input.get_input_bytecode,
     "epilogue": epilogue.epilogue_bytecode,
-    "ksa": ksa.ksa_bytecode
+    # "ksa": ksa.ksa_bytecode,
+    "matrix_mul": recursive_matrix_mul.matrix_mul_bytecode,
+    "rec_mul": poc3.recursive_mul_bytecode,
+    "check_input": check_input.check_input_bytecode
 }
 
 assert set(bytecodes.keys()) == set(vm_info.function_idx.keys())

@@ -1,4 +1,4 @@
-import obfuscator
+import obfuscator, vm_info
 
 flag = open("./flag.txt").read()
 l = len(flag)
@@ -30,7 +30,8 @@ crafter.obf_import_from("builtins", "len")
 crafter.get_memo(0)
 # todo: prompt?
 crafter.obf_import_from("builtins", "input")
-crafter.call_f(0)
+crafter.push_str("[flag]> ")
+crafter.call_f(1)
 crafter.push_str("encode")
 crafter.call_f(2)
 crafter.call_f(0)
@@ -38,12 +39,16 @@ crafter.memoize()  # 1
 
 crafter.call_f(1)
 crafter.call_f(1)
-crafter.call_f(0)
+crafter.push_int(1)
+crafter.call_f(1)
 
 crafter.pop()  # pop the result of dir()
 
 # set input().encode() to copyreg._extension_cache[idx]
+crafter.get_ctx()
+crafter.push_int(vm_info.inp)
 crafter.get_memo(1)  # user_input.encode()
+crafter.set_item()
 
 # export
 get_input_bytecode = crafter.get_payload(check_stop=True)
