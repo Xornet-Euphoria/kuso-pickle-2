@@ -3,6 +3,7 @@
 ## Prerequisite
 
 - Pickleの仕様
+  ‐ [cpython/Lib/pickle.py at main · python/cpython](https://github.com/python/cpython/blob/main/Lib/pickle.py): これ読んで
 - API Hashing
 
 ## TL;DR
@@ -30,7 +31,7 @@
 
 ### API Hashing
 
-Pickleで`from module import something`相当の事をする際は`STACK_GLOBAL`や`GLOBAL`オペコードを使用します。しかしこれは前者はスタックトップの2つの文字列を用いることから、付近に文字列をpushする命令があると何をインポートしているかが直ぐわかります (実際バイトコードの先頭で`pickle.loads`をインポートしている)。後者の場合は後続のバイト列をそのまま使用するため、逆アセンブルすればスタックの様子を見ずとも確認可能です。これまでPickleのRevを解いたり作ったりしてきた中で、このオペコードがGuessの要因や解析ツールの支援となることがあったのでなんとかしてそれを防ぎたいと思って生まれたのがPickle中でAPI Hashingを行うという発想です。
+Pickleで`from module import something`相当の事をする際は`STACK_GLOBAL`や`GLOBAL`オペコードを使用します。しかし前者はスタックトップの2つの文字列を用いることから、付近に文字列をpushする命令があると何をインポートしているかが直ぐわかります (実際バイトコードの先頭で`pickle.loads`をインポートしている)。後者の場合は後続のバイト列をそのまま使用するため、逆アセンブルすればスタックの様子を見ずとも確認可能です。これまでPickleのRevを解いたり作ったりしてきた中で、このオペコードがGuessの要因や解析ツールの支援となることがあったのでなんとかしてそれを防ぎたいと思って生まれたのがPickle中でAPI Hashingを行うという発想です。
 
 API Hashingの仕組みは単純で、関数呼び出しの際にハッシュをリゾルバに渡し、リゾルバはライブラリやその中にある関数を列挙してハッシュ化しながら一致するものを探して該当の関数を返すものとなります。Windowsのマルウェアや位置独立なシェルコードが関数ポインタを取得する際に見られるテクニックらしいです。
 
@@ -60,27 +61,96 @@ list(
 
 pickleのバイトコードでは`REDUCE`オペコードを使うことで、任意のPythonの関数を呼ぶことが出来るというのは言わずとしれた事実です。したがって、`pickle.loads`も当然呼ぶことができることからバイトコード中で別のバイトコードを実行出来ます。
 
-これで普通にプログラミング言語における関数呼び出しに相当することが可能になります。この問題では難読化に用いるあらゆる値 (API Hashingのハッシュ値、`getattr`や`int.__add__`のような汎用的なビルトインの関数、このような形で呼び出されるバイト列) を後述のグローバル領域 (`copyreg._extension_cache`) に配置する処理をはじめとしていくつかの処理をバイト列に分解して呼び出しています。
+この部分の例として[chall.pkl](./chall.pkl)の逆アセンブル結果を載せます。
+
+```
+    0: \x8c SHORT_BINUNICODE 'pickle'
+    8: \x8c SHORT_BINUNICODE 'loads'
+   15: \x93 STACK_GLOBAL
+   16: B    BINBYTES   (略)
+10482: \x85 TUPLE1
+10483: R    REDUCE
+```
+
+スタックに`pickle.loads`とバイト列をpushして`REDUCE`で呼び出すことでこのバイト列が実行されます。
+
+これでプログラミング言語における関数呼び出しに相当することが可能になります。この問題では難読化に用いるあらゆる値 (API Hashingのハッシュ値、`getattr`や`int.__add__`のような汎用的なビルトインの関数、このような形で呼び出されるバイト列) を後述のグローバル領域 (`copyreg._extension_cache`) に配置する処理をはじめとしていくつかの処理をバイト列に分解して呼び出しています。
 
 但し、特に工夫を施さない場合は引数を渡すことが出来ないのでこれを実現する手段が必要です。
 
 ### `copyreg._extension_cache`や`EXT<n>`オペコード
 
+今回の肝となるのが`EXT1, EXT2, EXT4`オペコードが呼ばれた時に参照される`copyreg._extension_cache`を利用したグローバル領域の実現です。前述の`pickle.loads`の多重呼び出しでは引数に対応するものが無いというクソデカい問題がありましたが、これによって解決します。
+
+これらのオペコードが呼ばれると、内部では[`get_extension`](https://github.com/python/cpython/blob/main/Lib/pickle.py/#L1583)と呼ばれる関数が呼び出されます。重要なのは次のコードです。
+
+```python
+    def get_extension(self, code):
+        nil = []
+        obj = _extension_cache.get(code, nil)
+        if obj is not nil:
+            self.append(obj)
+            return
+```
+
+この`_extension_cache`の定義は`from copyreg import _extension_registry, _inverted_registry, _extension_cache`となっており ([該当行](https://github.com/python/cpython/blob/main/Lib/pickle.py#L28))は、[`copyreg`というモジュール内の辞書](https://github.com/python/cpython/blob/main/Lib/copyreg.py#L169)を参照しています。
+
+ここで、PickleがPythonでできることならだいたいなんでもできる事を思い出すと、この辞書に要素を入れてそれを`EXT`系のオペコードで取ってくることが出来そうです。Pickleにはスタック上の辞書に対してキーと値を指定するとそれを設定する`SETITEM`や`SETITEMS`というオペコードが存在するため書き込みはこれで可能です。ただ、その都度`STACK_GLOBAL`でスタックに`copyreg._extension_cache`をpushするのは面倒なので、何らかの添字 (今回は0x10を使用。ちなみに0は設定できるものの、`get_extension`で弾かれる) を指定して`_extension_cache[idx] = _extension_cache`のような自己参照を実現し、この添字に対して`EXT<n>`を呼ぶだけでpushできるようにしています。
+
+これだけだとPickleのメモのような領域と手間がかかるだけで大きな違いが無いように見えますが、メモとの大きな違いとしてモジュールに対して施した変更は他のPickleバイトコードでも反映されているということがあります。これを利用して事前にどのインデックスがどの用途で使われるかを定めておけばバイトコード間で値をやり取りすることが可能です。
+
+VMのようなものがこれで実現出来たので、レジスタマシンをモデルにして1-8を汎用レジスタのような扱いにして、それ以外を各バイトコードのための領域にしています。また、0から255のようなよく使う数値や固定の文字列、API Hashingで使うハッシュ値、多重呼び出しで使うバイトコードも全部この中に押し込んで`pickletools.dis`の結果だけではどの要素がスタックにpushされるかをわかり辛くしています。
+
 ### 再帰を用いたループ
+
+これで引数を伴う関数呼び出しのようなことが実現したので、最後に再帰関数を用いてループを実現しました。実装は次のようなコードをPickleで書いて`loop_count`が`loop_count_max`に到達していない時は再帰呼び出しを行い、そうでない時は単純に`bytecode`を引数に取ることが可能でかつ副作用が無いもの (今回はid関数) を呼び出すようにしました。
+
+```python
+table = [pickle.loads, id]
+table[int.__floordiv__(loop_count, loop_count_max)](bytecode)
+```
+
+なお、`loop_count`に対応する`_extension_cache`の添字を汎用用途の1にしてしまったため、内部で別のバイトコードを呼び出す際の引数指定によって破壊されて盛大にバグりました。結局、これを回避するためにメモに退避させています。これを書いている最中にx86でいうところのrcxに相当するレジスタを用意して引数とは別の形でループ変数を渡せば退避処理を書かずに済んだことに気づきました。
 
 ## 解法
 
-レビューしていないのでどのレベル帯の人が解けるかは想像がつきませんが、手っ取り早いのはpickle.pyやpickletools.py辺りをコピペして改造していい感じの解析スクリプトを書くことだと思います。この問題に直接適用するのは難しいかもしれませんが、Pickleバイトコードのデバッガを実装した例があります: [Legoclones/pickledbg: A GDB+GEF-style debugger for unloading Python pickles](https://github.com/Legoclones/pickledbg/tree/main)。
+レビューしていないのでどのレベル帯の人が解けるかは想像がつきませんが、手っ取り早いのはpickle.pyやpickletools.py辺りを読んだりコピペしたりして改造していい感じの解析スクリプトを書くことだと思います。この問題に直接適用するのは難しいかもしれませんが、Pickleバイトコードのデバッガを実装した例があります: [Legoclones/pickledbg: A GDB+GEF-style debugger for unloading Python pickles](https://github.com/Legoclones/pickledbg/tree/main)。また、終了後に解いた人は[trailofbits/fickling: A Python pickling decompiler and static analyzer](https://github.com/trailofbits/fickling)を改造して解いたらしいです。
 
 特に、この問題では`pickle.loads`を使ったバイトコードの呼び出しや、使っているところを見たことがない`copyreg._extension_cache`、`EXT`系の命令等、pickle.pyを読んで理解する必要がある概念がそこそこあるのでこの辺のサポートを追加する必要があります。
 
-これをやった上で、API Hashingを利用した`STACK_GLOBAL`の難読化や再帰関数を利用したループには特定の命令列パターンが現れるはずなのでそれを元にして気合で元のPickleのコードやPythonのコードに直していくという気合が必要です。
+これをやった上で、API Hashingを利用した`STACK_GLOBAL`の難読化や再帰関数を利用したループには特定の命令列パターンが現れるはずなのでそれを元にして気合で元のPickleのコードや等価なPythonのコードに直していくという気合が必要です。
 
-難読化の正体が分かってしまえば、後はPickleの逆アセンブル結果を気合で読むだけなのでRevに慣れている人なら解けるだろう、という読みでした。Pickleには制御構文がないので、Pythonで標準搭載している高階関数(`map`, `filter`等)や真偽値をインデックスにとって次に呼び出される関数や引数を選ぶといった形で実装された一部のループや条件分岐にも対処する必要があります。
+難読化の正体が分かってしまえば、後はPickleの逆アセンブル結果を気合で読むだけなのでRevに慣れている人なら解けるだろう、という読みでした。Pickleには素直な制御構文がないので、Pythonで標準搭載している高階関数(`map`, `filter`等)や真偽値をインデックスにとって次に呼び出される関数や引数を選ぶといった形で実装された一部のループや条件分岐にも対処する必要があります。
 
-他に必要なテクニックとして、そもそもPickleがスタックマシンなのでメモや`copyreg._extension_cache`に入れる過程であっても必ずスタック上にその要素が現れ、それを適宜確認するというのがあります。今回の行列演算で使う行列や演算結果の比較対象もどこかのタイミングでスタックに乗るので、そこまでのバイト列を切り出して`pickle.STOP`を末尾に付与してloadするとそれがデシリアライズ結果として返ってきます。
+他に必要なテクニックとして、そもそもPickleがスタックマシンなのでメモや`copyreg._extension_cache`に入れる過程であっても必ずスタック上にその要素が現れるので、それを適宜確認するというのがあります。今回の行列演算で使う行列や演算結果の比較対象もどこかのタイミングでスタックに乗るので、そこまでのバイト列を切り出して`pickle.STOP`を末尾に付与してloadするとそれがデシリアライズ結果として返ってきます。
 
 この問題での例を挙げると、フラグチェックで登場する行列が本体をスタックに乗せた後に`getattr(matrix, "__getitem__")`を用いてgetter相当の関数に変換されており、演算時にはスタックに存在していません。そこで、getterを取得する寸前で止めてデシリアライズすることでバイト列の配列にエンコードされた行列を取得することが出来ます。
+
+また、動作全体をなんとなく把握するための方法として、`sys`モジュールが提供する監査フックを利用することがあります。一部の標準ライブラリの機能は利用時に監査イベントを送出し、この際のイベントと引数を引数にとるフック関数を`sys.addaudithook`で設定することが出来ます。監査の対象には`pickle.find_class`が含まれていることから、これを呼び出す`STACK_GLOBAL`や`GLOBAL`がどの関数やオブジェクトをスタックにpushしているかが判明します。以下のコードはそれを実現する簡単な例です。
+
+```python
+import sys
+
+def f(event, args):
+    print(event, args)
+
+sys.addaudithook(f)
+```
+
+これを実行すると次のようになります。
+
+```
+$ p trace.py 
+open ('./chall.pkl', 'r', 524288)
+pickle.find_class ('pickle', 'loads')
+pickle.find_class ('builtins', 'getattr')
+pickle.find_class ('builtins', 'list')
+pickle.find_class ('builtins', 'list')
+pickle.find_class ('builtins', 'map')
+pickle.find_class ('_hashlib', 'HASH')
+import ('_hashlib', None, ...)
+以下略
+```
 
 ## やらなかったこと
 
@@ -93,14 +163,14 @@ pickleのバイトコードでは`REDUCE`オペコードを使うことで、任
     - 今回のアイデア + SECCON CTF 2023 Quals - Sickleの合わせ技
     - これで擬似的なIP (インストラクションポインタの方) となるので、eval, exec, Pythonバイトコードの利用、ファイルポインタ変数が既知という仮定などを使わずに、Pickleの機能だけで制御構文とレジスタを持つ高機能なスタックベースのVMをシミュレートできる予感
 - 動的なバイトコード生成
-    - 文字列やバイト列をスタックにpushする際、大抵「オペコード」、「長さ」、「文字列やバイト列に対応するバイト列」のような並びになるので、長さやバイト列の部分をスタックに乗せて `bytes.__add__` や `bytes.join` 等で結合すればバイトコードをPickle中で構成できる
-    - 当初は別のバイトコードへの引数渡しをこれでやるという案を検討していたが、 `copyreg._extension_cache` の発見と研究により終了
+    - 文字列やバイト列をスタックにpushする際、大抵「オペコード」、「長さ」、「文字列やバイト列に対応するバイト列」のような並びになるので、長さやバイト列の部分をスタックに乗せて`bytes.__add__`や`bytes.join`等で結合すればバイトコードをPickle中で構成できる
+    - 当初は別のバイトコードへの引数渡しをこれでやるという案を検討していたが、`copyreg._extension_cache`の発見と研究により終了
 - その他、今回の問題の本質に関連しない難読化
     - メモにぶち込む命令 (`PUT`系)はスタックや大抵のコンテキストに影響しないため、使わないインデックスに対して連発すれば実質的なNOPとなる
-    - 加えて、バイトコード中で同一インデックスに対する `PUT` を行うとpickletools.pyがエラーを吐いて解析が困難になる
+    - 加えて、バイトコード中で同一インデックスに対する`PUT`を行うとpickletools.pyがエラーを吐いて解析が困難になる
         - pickletools.pyへの対策案はそこそこ抱えているが、ほとんど実装しなかった
     - ここに書くレベルですら無い実質NOPのような命令列の使用 (意味のないスタック操作命令等)
 
 ## あとがき
 
-Satokiさんに自己紹介した時に「(私に対して) Pickle職人の方ですよね？」と言われなかったらこんな問題は作らなかった。
+Satokiさんに自己紹介した時に「(私に対して) Pickle職人の方ですよね？」と言われなかったらこんな問題は作らなかったので苦情は私ではなく彼にお願いします。
