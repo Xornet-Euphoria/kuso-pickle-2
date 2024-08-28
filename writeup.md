@@ -3,7 +3,7 @@
 ## Prerequisite
 
 - Pickleの仕様
-  ‐ [cpython/Lib/pickle.py at main · python/cpython](https://github.com/python/cpython/blob/main/Lib/pickle.py): これ読んで
+  - [cpython/Lib/pickle.py at main · python/cpython](https://github.com/python/cpython/blob/main/Lib/pickle.py): これ読んで
 - API Hashing
 
 ## TL;DR
