@@ -1,0 +1,356 @@
+    0: \x82 EXT1       16
+    2: (    MARK
+    3: \x84     EXT4       65537
+    8: \x84     EXT4       196608
+   13: \x84     EXT4       65538
+   18: \x84     EXT4       196609
+   23: u        SETITEMS   (MARK at 2)
+   24: 0    POP
+   25: \x82 EXT1       195
+   27: \x82 EXT1       129
+   29: \x85 TUPLE1
+   30: R    REDUCE
+   31: \x94 MEMOIZE    (as 0)
+   32: (    MARK
+   33: \x82     EXT1       16
+   35: (        MARK
+   36: \x84         EXT4       65537
+   41: \x84         EXT4       196608
+   46: \x84         EXT4       65538
+   51: \x84         EXT4       196610
+   56: u            SETITEMS   (MARK at 35)
+   57: 0        POP
+   58: \x82     EXT1       195
+   60: \x82     EXT1       129
+   62: \x85     TUPLE1
+   63: R        REDUCE
+   64: 2        DUP
+   65: 2        DUP
+   66: 2        DUP
+   67: 2        DUP
+   68: 2        DUP
+   69: 2        DUP
+   70: 2        DUP
+   71: 2        DUP
+   72: 2        DUP
+   73: 2        DUP
+   74: 2        DUP
+   75: 2        DUP
+   76: 2        DUP
+   77: 2        DUP
+   78: 2        DUP
+   79: 2        DUP
+   80: 2        DUP
+   81: 2        DUP
+   82: 2        DUP
+   83: 2        DUP
+   84: 2        DUP
+   85: 2        DUP
+   86: 2        DUP
+   87: 2        DUP
+   88: 2        DUP
+   89: 2        DUP
+   90: 2        DUP
+   91: 2        DUP
+   92: 2        DUP
+   93: 2        DUP
+   94: 2        DUP
+   95: 2        DUP
+   96: 2        DUP
+   97: 2        DUP
+   98: 2        DUP
+   99: 2        DUP
+  100: 2        DUP
+  101: 2        DUP
+  102: 2        DUP
+  103: 2        DUP
+  104: 2        DUP
+  105: 2        DUP
+  106: 2        DUP
+  107: 2        DUP
+  108: 2        DUP
+  109: 2        DUP
+  110: 2        DUP
+  111: 2        DUP
+  112: 2        DUP
+  113: 2        DUP
+  114: 2        DUP
+  115: 2        DUP
+  116: 2        DUP
+  117: 2        DUP
+  118: 2        DUP
+  119: \x82     EXT1       16
+  121: (        MARK
+  122: \x84         EXT4       65537
+  127: \x84         EXT4       196608
+  132: \x84         EXT4       65538
+  137: \x84         EXT4       196611
+  142: u            SETITEMS   (MARK at 121)
+  143: 0        POP
+  144: \x82     EXT1       195
+  146: \x82     EXT1       129
+  148: \x85     TUPLE1
+  149: R        REDUCE
+  150: \x82     EXT1       16
+  152: (        MARK
+  153: \x84         EXT4       65537
+  158: \x84         EXT4       196608
+  163: \x84         EXT4       65538
+  168: \x84         EXT4       196610
+  173: u            SETITEMS   (MARK at 152)
+  174: 0        POP
+  175: \x82     EXT1       195
+  177: \x82     EXT1       129
+  179: \x85     TUPLE1
+  180: R        REDUCE
+  181: 2        DUP
+  182: 2        DUP
+  183: 2        DUP
+  184: 2        DUP
+  185: 2        DUP
+  186: 2        DUP
+  187: 2        DUP
+  188: 2        DUP
+  189: 2        DUP
+  190: 2        DUP
+  191: 2        DUP
+  192: 2        DUP
+  193: 2        DUP
+  194: 2        DUP
+  195: 2        DUP
+  196: 2        DUP
+  197: 2        DUP
+  198: 2        DUP
+  199: 2        DUP
+  200: 2        DUP
+  201: 2        DUP
+  202: 2        DUP
+  203: 2        DUP
+  204: 2        DUP
+  205: 2        DUP
+  206: 2        DUP
+  207: 2        DUP
+  208: 2        DUP
+  209: 2        DUP
+  210: 2        DUP
+  211: 2        DUP
+  212: 2        DUP
+  213: 2        DUP
+  214: 2        DUP
+  215: 2        DUP
+  216: 2        DUP
+  217: 2        DUP
+  218: 2        DUP
+  219: 2        DUP
+  220: 2        DUP
+  221: 2        DUP
+  222: 2        DUP
+  223: 2        DUP
+  224: 2        DUP
+  225: 2        DUP
+  226: 2        DUP
+  227: 2        DUP
+  228: 2        DUP
+  229: 2        DUP
+  230: 2        DUP
+  231: 2        DUP
+  232: 2        DUP
+  233: 2        DUP
+  234: 2        DUP
+  235: 2        DUP
+  236: 2        DUP
+  237: 2        DUP
+  238: 2        DUP
+  239: 2        DUP
+  240: 2        DUP
+  241: 2        DUP
+  242: 2        DUP
+  243: 2        DUP
+  244: 2        DUP
+  245: 2        DUP
+  246: 2        DUP
+  247: 2        DUP
+  248: 2        DUP
+  249: 2        DUP
+  250: 2        DUP
+  251: 2        DUP
+  252: 2        DUP
+  253: 2        DUP
+  254: 2        DUP
+  255: 2        DUP
+  256: 2        DUP
+  257: 2        DUP
+  258: 2        DUP
+  259: 2        DUP
+  260: 2        DUP
+  261: 2        DUP
+  262: 2        DUP
+  263: 2        DUP
+  264: 2        DUP
+  265: 2        DUP
+  266: 2        DUP
+  267: 2        DUP
+  268: 2        DUP
+  269: 2        DUP
+  270: 2        DUP
+  271: 2        DUP
+  272: 2        DUP
+  273: 2        DUP
+  274: 2        DUP
+  275: 2        DUP
+  276: 2        DUP
+  277: 2        DUP
+  278: 2        DUP
+  279: 2        DUP
+  280: 2        DUP
+  281: 2        DUP
+  282: 2        DUP
+  283: 2        DUP
+  284: 2        DUP
+  285: 2        DUP
+  286: 2        DUP
+  287: 2        DUP
+  288: 2        DUP
+  289: 2        DUP
+  290: 2        DUP
+  291: 2        DUP
+  292: 2        DUP
+  293: 2        DUP
+  294: 2        DUP
+  295: 2        DUP
+  296: 2        DUP
+  297: 2        DUP
+  298: 2        DUP
+  299: 2        DUP
+  300: 2        DUP
+  301: 2        DUP
+  302: 2        DUP
+  303: 2        DUP
+  304: 2        DUP
+  305: 2        DUP
+  306: 2        DUP
+  307: 2        DUP
+  308: 2        DUP
+  309: 2        DUP
+  310: 2        DUP
+  311: 2        DUP
+  312: 2        DUP
+  313: 2        DUP
+  314: 2        DUP
+  315: 2        DUP
+  316: 2        DUP
+  317: 2        DUP
+  318: 2        DUP
+  319: 2        DUP
+  320: 2        DUP
+  321: 2        DUP
+  322: 2        DUP
+  323: 2        DUP
+  324: 2        DUP
+  325: 2        DUP
+  326: 2        DUP
+  327: 2        DUP
+  328: 2        DUP
+  329: 2        DUP
+  330: 2        DUP
+  331: 2        DUP
+  332: 2        DUP
+  333: 2        DUP
+  334: 2        DUP
+  335: 2        DUP
+  336: 2        DUP
+  337: 2        DUP
+  338: 2        DUP
+  339: 2        DUP
+  340: 2        DUP
+  341: 2        DUP
+  342: 2        DUP
+  343: 2        DUP
+  344: 2        DUP
+  345: 2        DUP
+  346: 2        DUP
+  347: 2        DUP
+  348: 2        DUP
+  349: 2        DUP
+  350: 2        DUP
+  351: 2        DUP
+  352: 2        DUP
+  353: 2        DUP
+  354: 2        DUP
+  355: 2        DUP
+  356: 2        DUP
+  357: 2        DUP
+  358: 2        DUP
+  359: 2        DUP
+  360: 2        DUP
+  361: 2        DUP
+  362: 2        DUP
+  363: 2        DUP
+  364: 2        DUP
+  365: 2        DUP
+  366: 2        DUP
+  367: 2        DUP
+  368: 2        DUP
+  369: 2        DUP
+  370: 2        DUP
+  371: 2        DUP
+  372: 2        DUP
+  373: 2        DUP
+  374: 2        DUP
+  375: 2        DUP
+  376: 2        DUP
+  377: 2        DUP
+  378: 2        DUP
+  379: 2        DUP
+  380: l        LIST       (MARK at 32)
+  381: \x84 EXT4       131074
+  386: \x86 TUPLE2
+  387: R    REDUCE
+  388: \x82 EXT1       16
+  390: (    MARK
+  391: \x84     EXT4       65537
+  396: \x84     EXT4       196608
+  401: \x84     EXT4       65538
+  406: \x84     EXT4       196612
+  411: u        SETITEMS   (MARK at 390)
+  412: 0    POP
+  413: \x82 EXT1       195
+  415: \x82 EXT1       129
+  417: \x85 TUPLE1
+  418: R    REDUCE
+  419: h    BINGET     0
+  421: \x82 EXT1       16
+  423: (    MARK
+  424: \x84     EXT4       65537
+  429: \x84     EXT4       196608
+  434: \x84     EXT4       65538
+  439: \x84     EXT4       196613
+  444: u        SETITEMS   (MARK at 423)
+  445: 0    POP
+  446: \x82 EXT1       195
+  448: \x82 EXT1       129
+  450: \x85 TUPLE1
+  451: R    REDUCE
+  452: \x8c SHORT_BINUNICODE '[flag]> '
+  462: \x85 TUPLE1
+  463: R    REDUCE
+  464: \x84 EXT4       131076
+  469: \x86 TUPLE2
+  470: R    REDUCE
+  471: )    EMPTY_TUPLE
+  472: R    REDUCE
+  473: \x94 MEMOIZE    (as 1)
+  474: \x85 TUPLE1
+  475: R    REDUCE
+  476: \x85 TUPLE1
+  477: R    REDUCE
+  478: \x84 EXT4       65537
+  483: \x85 TUPLE1
+  484: R    REDUCE
+  485: 0    POP
+  486: \x82 EXT1       16
+  488: M    BININT2    12288
+  491: h    BINGET     1
+  493: s    SETITEM
+  494: .    STOP
+highest protocol among opcodes = 4
